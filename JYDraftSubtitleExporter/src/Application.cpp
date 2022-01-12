@@ -1,6 +1,8 @@
 #include <iostream>
-#include <tchar.h>
+#include <vector>
 #include <windows.h>
+#include "Lib/clipp.h"
+#include "Utils.h"
 #include "JYDraftSubtitleExporter.h"
 
 /**
@@ -10,41 +12,35 @@
  * 时间线 tracks[].segments[].target_timerange.(start-duration)
  **/
 
-int main()
+int main(int argc, char* argv[])
 {
-	SetConsoleTitle(_T("剪映字幕导出-极速版"));
-
-	JYDraftSubtitleExporter exporter;
-	std::string tmpString;
-	unsigned int timeStart = GetTickCount64();
-
-	do {
-		tmpString.clear();
-		std::cout << "请输入待解析的剪映草稿文件路径: ";
-		std::cin >> tmpString;
-		if (!exporter.SetSourceFilePath(tmpString)) {
-			std::cout << "草稿文件解析异常" << std::endl;
-		} else {
-			break;
+	std::string draftPath = "", exportPath = "";
+	bool flagHasTimeCode = true;
+	bool flagTargetFileForceOverride = false;
+	unsigned long long startTime = GetTickCount64();
+	std::vector<std::string> wrong;
+	auto cli = (
+		clipp::value("draftPath", draftPath).required(true).doc("设置剪映草稿字幕文件路径;")
+		.if_missing([] { ERR_PRINT("暂未检测到剪映草稿字幕文件路径"); }),
+		clipp::value("exportPath", exportPath).required(true).doc("设置转存文件路径(自动补充后缀srt);")
+			.if_missing([] { ERR_PRINT("暂未检测到转存文件路径"); }),
+		clipp::option("--force-override").set(flagTargetFileForceOverride, true).doc("是否强制覆盖转存文件(如果已存在);"),
+		clipp::any_other(wrong)
+	);
+	auto res = parse(argc, argv, cli);
+	if (res && wrong.empty()) {
+		JYDraftSubtitleExporter exporter;
+		exporter.SetFlagHasTimeCode(flagHasTimeCode);
+		exporter.SetFlagTargetFileForceOverride(flagTargetFileForceOverride);
+		if (!exporter.SetSourceFilePath(draftPath) || !exporter.SetTargetFilePath(exportPath) || !exporter.ExecExport()) {
+			return -1;
 		}
-	} while (1);
-	do {
-		tmpString.clear();
-		std::cout << "请输入转存文件: ";
-		std::cin >> tmpString;
-		if (!exporter.SetTargetFilePath(tmpString)) {
-			std::cout << "转存文件解析异常" << std::endl;
-		}
-		else {
-			break;
-		}
-	} while (1);
+		std::cout << "导出字幕文件成功[" << exporter.GetTargetFilePath() << "], 字幕块: " << exporter.GetBlockCount() << ", 耗时(ms): " << (GetTickCount64() - startTime) << std::endl;
 
-	if (!exporter.ExecExport()) {
-		std::cout << "导出字幕文件异常" << std::endl;
-		return -1;
+	} else {
+		for (const auto& arg : wrong) {
+			ERR_PRINT(arg + "非法参数");
+		}
+		std::cerr << clipp::make_man_page(cli, argv[0]) << std::endl;
 	}
-	std::cout << "导出字幕文件成功" << std::endl;
-
-	system("pause");
 }

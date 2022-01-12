@@ -12,6 +12,8 @@ private:
 	std::string m_TargetFilePath;
 	unsigned int m_BlockCount;
 	bool m_FlagHasTimeCode;
+	bool m_FlagTargetFileReflush;
+	bool m_FlagTargetFileForceOverride;
 
 	Json::Reader m_JsonReader;
 	Json::Value m_JsonData;
@@ -23,9 +25,12 @@ public:
 	bool SetSourceFilePath(const std::string& path);
 	bool SetTargetFilePath(const std::string& path);
 	void SetFlagHasTimeCode(bool flag);
+	void SetFlagTargetFileForceOverride(bool flag);
+	void DelTargetFile();
 	bool ExecExport();
 
-	std::string GetSourceFilePath() { return m_SourceFilePath; }
-	std::string GetTargetFilePath() { return m_TargetFilePath; }
-	bool GetFlagHasTimeCode() { return m_FlagHasTimeCode; }
+	std::string GetSourceFilePath() const { return m_SourceFilePath; }
+	std::string GetTargetFilePath() const { return m_TargetFilePath; }
+	bool GetFlagHasTimeCode() const { return m_FlagHasTimeCode; }
+	unsigned int GetBlockCount() const { return m_BlockCount; }
 };
