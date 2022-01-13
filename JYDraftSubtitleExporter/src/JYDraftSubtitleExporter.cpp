@@ -5,7 +5,7 @@
 std::string tmpStr = "";
 
 JYDraftSubtitleExporter::JYDraftSubtitleExporter()
-	:m_SourceFilePath(""), m_TargetFilePath(""), m_FlagHasTimeCode(true), m_BlockCount(0)
+	:m_SourceFilePath(""), m_TargetFilePath(""), m_FlagHasTimeCode(true), m_BlockCount(0), m_FlagTargetFileForceOverride(false), m_FlagTargetFileReflush(false)
 {
 }
 
@@ -17,6 +17,8 @@ JYDraftSubtitleExporter::~JYDraftSubtitleExporter()
 	m_JsonReader = {};
 	m_JsonData = NULL;
 	m_FlagHasTimeCode = true;
+	m_FlagTargetFileForceOverride = false;
+	m_FlagTargetFileReflush = false;
 }
 
 bool JYDraftSubtitleExporter::SetSourceFilePath(const std::string& path)
